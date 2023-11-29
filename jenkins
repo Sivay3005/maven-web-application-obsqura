@@ -1,0 +1,25 @@
+node {
+    def MAVEN_HOME
+
+    stage("CheckOutCodeGit") {
+        checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/Sivay3005/maven-web-application-obsqura.git']]])
+        sh "ls"
+    }
+
+    stage("Build") {
+        MAVEN_HOME = tool 'maven-3.9.5'
+        sh "${MAVEN_HOME}/bin/mvn clean package"
+    }
+
+    stage("SonarQube") {
+        sh "${MAVEN_HOME}/bin/mvn clean sonar:sonar \
+            -Dsonar.projectKey=maven-web-application-obsqura \
+            -Dsonar.host.url=http://54.236.28.214:9000 \
+            -Dsonar.login=sqp_f06414594231f0e78dd3783544e85c9762b5afea"
+    }
+
+    stage("UploadArtifactsintoNexus") {
+        sh "ls"
+        sh "${MAVEN_HOME}/bin/mvn -s settings.xml deploy"
+    }
+}
